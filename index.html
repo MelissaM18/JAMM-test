@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>JAMM - Repostería Creativa</title>
+
+        <link rel="manifest" href="manifest.json">
+        <meta name="theme-color" content="#6D72C3">
+
+        <link rel="stylesheet" href="styles.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    </head>
+
+    <body>
+        <header>
+            <div class="logo">🍰 JAMM</div>
+            <nav>
+                <button class="nav-btn" data-page="inicio">Inicio</button>
+                <button class="nav-btn" data-page="recetario">Recetario</button>
+                <button class="nav-btn" data-page="favoritos">Favoritos</button>
+                <button class="nav-btn" data-page="app">App</button>
+                <button class="nav-btn" data-page="tienda">Tienda</button>
+            </nav>
+        </header>
+
+        <main>
+            <div id="pageContent" class="card"></div>
+        </main>
+
+        <script src="app.js"></script>
+
+        <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+        </script>
+    </body>
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h3>🍰 JAMM</h3>
+                <p>Recetas dulces donde sea 💜</p>
+            </div>
+        </div>
+    </footer>
+</html>
