@@ -7,23 +7,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ================= NAV ================= */
 
-    navButtons.forEach(btn=>{
-        btn.addEventListener("click",()=>goToPage(btn.dataset.page));
+    navButtons.forEach(btn => {
+        btn.addEventListener("click", () => goToPage(btn.dataset.page));
     });
 
-    function goToPage(page){
-        navButtons.forEach(b=>b.classList.remove("active"));
+    function goToPage(page) {
+        navButtons.forEach(b => b.classList.remove("active"));
         document.querySelector(`[data-page="${page}"]`)?.classList.add("active");
         renderPage(page);
     }
 
     /* ================= RENDER ================= */
 
-    function renderPage(page){
+    function renderPage(page) {
 
-        let content="";
+        let content = "";
 
-        switch(page){
+        switch (page) {
 
             case "inicio":
                 content = `
@@ -32,17 +32,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p>Endulza tu día con recetas 💜</p>
                     <button id="exploreBtn">Explorar</button>
                 </div>
+
+                <h3>✨ Últimas recetas</h3>
                 <div id="homeLatest" class="grid-4"></div>
                 `;
-            break;
+                break;
 
             case "recetario":
                 content = `<h2>Recetario</h2><div id="recetario"></div>`;
-            break;
+                break;
 
             case "favoritos":
                 content = `<h2>Favoritos 💖</h2><div id="favoritos"></div>`;
-            break;
+                break;
 
             case "app":
                 content = `
@@ -51,31 +53,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button id="installBtn">Instalar App</button>
                 </div>
                 `;
-            break;
+                break;
 
             case "tienda":
                 content = `<h2>Tienda 🛒</h2><p>Próximamente</p>`;
-            break;
+                break;
         }
 
         pageContent.innerHTML = content;
 
-        if(page==="inicio") initHome();
-        if(page==="recetario") initRecetario();
-        if(page==="favoritos") initFavoritos();
-        if(page==="app") initInstall();
+        if (page === "inicio") initHome();
+        if (page === "recetario") initRecetario();
+        if (page === "favoritos") initFavoritos();
+        if (page === "app") initInstall();
     }
 
     /* ================= HOME ================= */
 
-    function initHome(){
+    function initHome() {
 
         document.getElementById("exploreBtn")
-        ?.addEventListener("click",()=>goToPage("recetario"));
+            ?.addEventListener("click", () => goToPage("recetario"));
 
         const container = document.getElementById("homeLatest");
 
-        recipes.slice(-4).reverse().forEach(r=>{
+        recipes.slice(-4).reverse().forEach(r => {
             container.innerHTML += `
             <div class="card">
                 <img src="${r.image}" class="recipe-img">
@@ -86,42 +88,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ================= RECETARIO ================= */
 
-    function initRecetario(){
+    function initRecetario() {
 
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-            <button id="add">➕ Nueva receta</button>
+            <button id="add" class="cute-btn">➕ Nueva receta</button>
             <div class="grid-4"></div>
         `;
 
         const grid = container.querySelector(".grid-4");
 
-        recipes.forEach(r=>{
+        recipes.forEach(r => {
             grid.innerHTML += `
-            <div class="card">
+            <div class="card recipe-card">
+
                 <img src="${r.image}" class="recipe-img">
+
                 <h4>${r.name}</h4>
-                <button class="fav" data-id="${r.id}">
-                    ${r.favorite ? "💖" : "🤍"}
+                <p>${r.category}</p>
+
+                <button class="view" data-id="${r.id}">
+                    Ver más 👀
                 </button>
-                <button class="del" data-id="${r.id}">🗑</button>
+
+                <div class="card-actions">
+                    <button class="fav" data-id="${r.id}">
+                        ${r.favorite ? "💖" : "🤍"}
+                    </button>
+                    <button class="del" data-id="${r.id}">🗑</button>
+                </div>
+
             </div>`;
         });
 
+        /* EVENTOS */
+
         document.getElementById("add").onclick = renderForm;
 
-        document.querySelectorAll(".del").forEach(btn=>{
-            btn.onclick = ()=>{
-                recipes = recipes.filter(r=>r.id != btn.dataset.id);
+        document.querySelectorAll(".view").forEach(btn => {
+            btn.onclick = () => renderDetail(btn.dataset.id);
+        });
+
+        document.querySelectorAll(".del").forEach(btn => {
+            btn.onclick = () => {
+                if (!confirm("¿Eliminar receta? 💜")) return;
+                recipes = recipes.filter(r => r.id != btn.dataset.id);
                 save();
                 initRecetario();
             };
         });
 
-        document.querySelectorAll(".fav").forEach(btn=>{
-            btn.onclick = ()=>{
-                const r = recipes.find(x=>x.id == btn.dataset.id);
+        document.querySelectorAll(".fav").forEach(btn => {
+            btn.onclick = () => {
+                const r = recipes.find(x => x.id == btn.dataset.id);
                 r.favorite = !r.favorite;
                 save();
                 initRecetario();
@@ -129,41 +149,107 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function renderForm(){
+    /* ================= DETALLE ================= */
+
+    function renderDetail(id) {
+
+        const recipe = recipes.find(r => r.id == id);
+        const container = document.getElementById("recetario");
+
+        container.innerHTML = `
+        <button id="back" class="cute-btn">⬅ Volver</button>
+
+        <div class="card detail-card">
+
+            <div class="detail-grid">
+
+                <!-- IZQUIERDA -->
+                <div class="detail-left">
+                        <img src="${recipe.image}" class="detail-img">
+                    <h4>Ingredientes</h4>
+                    <div class="ingredients-box">
+                        <ul>
+                            ${recipe.ingredients
+                                .split("\n")
+                                .map(i => `<li>${i}</li>`)
+                                .join("")}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- DERECHA -->
+                <div class="detail-right">
+
+                    <h2>${recipe.name}</h2>
+                    <p><strong>Categoría:</strong> ${recipe.category}</p>
+
+                    <h3>Preparación</h3>
+
+                    <p class="prep-text">
+                        ${recipe.preparation.replace(/\n/g, "<br><br>")}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+        `;
+
+        document.getElementById("back").onclick = initRecetario;
+    }
+
+    /* ================= FORMULARIO ================= */
+
+    function renderForm() {
 
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-        <button id="back">⬅ Volver</button>
+        <button id="back" class="cute-btn">⬅ Volver</button>
 
-        <div class="card">
-            <input id="name" placeholder="Nombre">
-            <input id="cat" placeholder="Categoría">
-            <textarea id="ing" placeholder="Ingredientes"></textarea>
-            <textarea id="prep" placeholder="Preparación"></textarea>
+        <div class="card form-card">
+
+            <h3>🍰 Nueva receta</h3>
+
+            <input id="name" placeholder="Nombre del postre">
+            <input id="cat" placeholder="Categoría (Ej: Pastel, Galletas)">
+
+            <textarea id="ing" placeholder="Ingredientes (uno por línea)"></textarea>
+
+            <textarea id="prep" placeholder="Preparación paso a paso"></textarea>
+
             <input type="file" id="img">
-            <button id="save">Guardar</button>
+
+            <button id="save" class="cute-btn">Guardar receta ✨</button>
+
         </div>
         `;
 
         document.getElementById("back").onclick = initRecetario;
 
-        document.getElementById("save").onclick = ()=>{
+        document.getElementById("save").onclick = () => {
+
+            const nameInput = document.getElementById("name").value;
+            const catInput = document.getElementById("cat").value;
+            const ingInput = document.getElementById("ing").value;
+            const prepInput = document.getElementById("prep").value;
 
             const file = document.getElementById("img").files[0];
-            if(!file) return alert("Selecciona imagen");
+            if (!file) return alert("Selecciona imagen 💜");
 
             const reader = new FileReader();
 
-            reader.onload = e=>{
+            reader.onload = e => {
+
                 recipes.push({
                     id: Date.now(),
-                    name: name.value,
-                    category: cat.value,
-                    ingredients: ing.value,
-                    preparation: prep.value,
+                    name: nameInput,
+                    category: catInput,
+                    ingredients: ingInput,
+                    preparation: prepInput,
                     image: e.target.result,
-                    favorite:false
+                    favorite: false
                 });
 
                 save();
@@ -176,13 +262,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ================= FAVORITOS ================= */
 
-    function initFavoritos(){
+    function initFavoritos() {
 
         const container = document.getElementById("favoritos");
 
-        const favs = recipes.filter(r=>r.favorite);
+        const favs = recipes.filter(r => r.favorite);
 
-        if(favs.length===0){
+        if (favs.length === 0) {
             container.innerHTML = "<p>No tienes favoritos 💜</p>";
             return;
         }
@@ -190,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML = `<div class="grid-4"></div>`;
         const grid = container.querySelector(".grid-4");
 
-        favs.forEach(r=>{
+        favs.forEach(r => {
             grid.innerHTML += `
             <div class="card">
                 <img src="${r.image}" class="recipe-img">
@@ -203,20 +289,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let deferredPrompt;
 
-    window.addEventListener("beforeinstallprompt",(e)=>{
+    window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
     });
 
-    function initInstall(){
+    function initInstall() {
 
         const btn = document.getElementById("installBtn");
 
-        btn.onclick = async ()=>{
-            if(deferredPrompt){
+        btn.onclick = async () => {
+            if (deferredPrompt) {
                 deferredPrompt.prompt();
                 await deferredPrompt.userChoice;
-            }else{
+            } else {
                 alert("Usa menú del navegador 📲");
             }
         };
@@ -224,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ================= STORAGE ================= */
 
-    function save(){
+    function save() {
         localStorage.setItem("jamm_recipes", JSON.stringify(recipes));
     }
 

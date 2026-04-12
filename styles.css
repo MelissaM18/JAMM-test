@@ -1,4 +1,5 @@
-/* RESET */
+/* ================= RESET ================= */
+
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -6,12 +7,14 @@ body {
     color: #514F59;
 }
 
-/* HEADER */
+/* ================= HEADER ================= */
+
 header {
     background: linear-gradient(135deg, #6D72C3, #5941A9);
     padding: 1.2rem 2rem;
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -19,11 +22,12 @@ header {
 
 .logo {
     color: white;
-    font-weight: bold;
     font-size: 1.5rem;
+    font-weight: bold;
 }
 
-/* NAV */
+/* ================= NAV ================= */
+
 nav {
     display: flex;
     gap: 10px;
@@ -37,11 +41,12 @@ nav {
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
-    transition: 0.2s;
+    transition: 0.25s;
 }
 
 .nav-btn:hover {
     background: #E5D4ED;
+    transform: scale(1.05);
 }
 
 .nav-btn.active {
@@ -49,30 +54,29 @@ nav {
     color: white;
 }
 
-/* ICONO USUARIO */
-.user-icon {
-    background: white;
-    color: #5941A9;
-    border-radius: 50%;
-    padding: 10px;
-    border: none;
-    cursor: pointer;
-}
+/* ================= MAIN ================= */
 
-/* MAIN */
 main {
     padding: 2rem;
 }
 
-/* CARD */
+/* ================= CARD ================= */
+
 .card {
     background: white;
     padding: 1.5rem;
     border-radius: 25px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+    transition: 0.3s;
 }
 
-/* GRID */
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* ================= GRID ================= */
+
 .grid-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -91,30 +95,196 @@ main {
     }
 }
 
-/* IMÁGENES */
+/* ================= IMÁGENES ================= */
+
 .recipe-img {
     width: 100%;
     height: 160px;
     object-fit: cover;
     border-radius: 15px;
+    margin-bottom: 10px;
 }
 
-/* BOTONES */
+.detail-img {
+    width: 100%;
+    max-width: 350px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+/* ================= BOTONES ================= */
+
 button {
-    background: #6D72C3;
+    background: linear-gradient(135deg, #6D72C3, #5941A9);
     color: white;
     border: none;
     padding: 10px 15px;
     border-radius: 20px;
     cursor: pointer;
     margin-top: 10px;
+    font-weight: bold;
+    transition: 0.25s;
+}
+
+button {
+    width: fit-content;
 }
 
 button:hover {
-    background: #5941A9;
+    transform: scale(1.05);
 }
 
-/* HOME */
+/* BOTÓN VOLVER */
+#back {
+    margin-bottom: 20px;
+}
+
+/* BOTÓN CUTE ESPECIAL */
+.cute-btn {
+    background: linear-gradient(135deg, #6D72C3, #5941A9);
+}
+
+/* DELETE */
+.del {
+    background: #ff4d6d;
+}
+
+.del:hover {
+    background: #d90429;
+}
+
+/* ================= RECETAS ================= */
+
+.recipe-card h4 {
+    margin: 5px 0;
+}
+
+.recipe-card p {
+    font-size: 0.85rem;
+    color: #777;
+}
+
+/* BOTONES DENTRO DE CARD */
+.card-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.detail-left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.detail-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ingredients-list {
+    background: #F8F6FB;
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.ingredients-list li {
+    margin-bottom: 8px;
+}
+
+.prep-text {
+    line-height: 1.6;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+#recetario {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 🔥 separación entre botón y recetas */
+}
+
+#add {
+    align-self: flex-start; /* evita que se estire */
+    margin-bottom: 10px;
+}
+
+#recetario .grid-4 {
+    margin-top: 10px;
+}
+
+#add {
+    background: linear-gradient(135deg, #6D72C3, #5941A9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* ================= DETALLE ================= */
+
+.detail-card {
+    padding: 25px;
+}
+
+.detail-top {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+
+.detail-info {
+    flex: 1;
+    min-width: 250px;
+}
+
+.detail-bottom {
+    margin-top: 30px;
+}
+
+/* ================= FORM ================= */
+
+.form-card h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 15px;
+    border: 2px solid transparent;
+    background: #F8F6FB;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus, textarea:focus {
+    border: 2px solid #6D72C3;
+    background: white;
+}
+
+textarea {
+    resize: none;
+    height: 100px;
+}
+
+/* ================= HOME ================= */
+
 .home-hero {
     text-align: center;
     margin-bottom: 30px;
@@ -122,9 +292,15 @@ button:hover {
 
 .home-hero h1 {
     color: #5941A9;
+    font-size: 2.2rem;
 }
 
-/* FOOTER */
+.home-hero p {
+    margin-bottom: 15px;
+}
+
+/* ================= FOOTER ================= */
+
 .footer {
     margin-top: 50px;
     background: #5941A9;
