@@ -370,4 +370,22 @@ document.addEventListener("DOMContentLoaded", () => {
         currentUser = data.user;
         updateUI();
     });
+
+    async function registerTest() {
+        const email = prompt("Correo:");
+        const password = prompt("Contraseña:");
+
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password
+        });
+
+        if (error) {
+            console.error(error);
+            alert("Error: " + error.message);
+            return;
+        }
+
+        alert("Usuario creado correctamente 💜");
+    }
 });
