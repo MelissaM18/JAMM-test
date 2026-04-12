@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= SUPABASE ================= */
 
     const SUPABASE_URL = "https://hkgpbboxchmkliitytni.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc";
+    const SUPABASE_KEY = "TU_API_KEY_AQUI";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -33,13 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("userMenu").classList.toggle("hidden");
     };
 
+    document.getElementById("loginOption").onclick = () => renderAuth("login");
+    document.getElementById("registerOption").onclick = () => renderAuth("register");
+
     document.getElementById("logoutOption").onclick = async () => {
         await supabase.auth.signOut();
         location.reload();
     };
-
-    document.getElementById("loginOption").onclick = () => renderAuth("login");
-    document.getElementById("registerOption").onclick = () => renderAuth("register");
 
     /* ================= AUTH ================= */
 
@@ -53,9 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showUserUI() {
+        const username = currentUser.user_metadata?.username || "Usuario";
+
+        document.getElementById("usernameDisplay").textContent = username;
         document.getElementById("usernameDisplay").classList.remove("hidden");
-        document.getElementById("usernameDisplay").textContent =
-            currentUser.email.split("@")[0];
 
         document.getElementById("logoutOption").classList.remove("hidden");
         document.getElementById("loginOption").classList.add("hidden");
@@ -65,9 +66,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderAuth(type) {
 
         pageContent.innerHTML = `
+        <button id="back" class="back-btn">⬅ Volver</button>
+
         <div class="card form-card">
 
             <h2>${type === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
+
+            ${type === "register" ? `<input id="username" placeholder="Nombre">` : ""}
 
             <input id="email" placeholder="Correo">
             <input id="password" type="password" placeholder="Contraseña">
@@ -75,8 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <button id="authBtn">
                 ${type === "login" ? "Entrar" : "Registrarse"}
             </button>
-
-            <button id="back">⬅ Volver</button>
 
         </div>
         `;
@@ -99,12 +102,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             } else {
 
+                const username = document.getElementById("username").value;
+
                 const { error } = await supabase.auth.signUp({
                     email,
-                    password
+                    password,
+                    options: {
+                        data: { username }
+                    }
                 });
 
                 if (error) return alert(error.message);
+
+                alert("Cuenta creada 💜 Ahora inicia sesión");
             }
 
             location.reload();
@@ -294,82 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         document.getElementById("back").onclick = initRecetario;
-    }
-
-    /* ================= FORM ================= */
-
-    function renderForm() {
-
-        const container = document.getElementById("recetario");
-
-        container.innerHTML = `
-        <button id="back" class="back-btn">⬅ Volver</button>
-
-        <div class="card form-card">
-
-            <h3>🍰 Nueva receta</h3>
-
-            <input id="name" placeholder="Nombre del postre">
-            <input id="cat" placeholder="Categoría">
-            <textarea id="ing" placeholder="Ingredientes"></textarea>
-            <textarea id="prep" placeholder="Preparación"></textarea>
-            <input type="file" id="img">
-
-            <button id="save" class="cute-btn">Guardar receta ✨</button>
-
-        </div>
-        `;
-
-        document.getElementById("back").onclick = initRecetario;
-
-        document.getElementById("save").onclick = async () => {
-
-            const file = document.getElementById("img").files[0];
-            if (!file) return alert("Selecciona imagen");
-
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-
-                await supabase.from("recipes").insert([{
-                    name: document.getElementById("name").value,
-                    category: document.getElementById("cat").value,
-                    ingredients: document.getElementById("ing").value,
-                    preparation: document.getElementById("prep").value,
-                    image: e.target.result,
-                    favorite: false
-                }]);
-
-                loadRecipes();
-            };
-
-            reader.readAsDataURL(file);
-        };
-    }
-
-    /* ================= FAVORITOS ================= */
-
-    function initFavoritos() {
-
-        const container = document.getElementById("favoritos");
-
-        const favs = recipes.filter(r => r.favorite);
-
-        if (!favs.length) {
-            container.innerHTML = "<p>No tienes favoritos 💜</p>";
-            return;
-        }
-
-        container.innerHTML = `<div class="grid-4"></div>`;
-        const grid = container.querySelector(".grid-4");
-
-        favs.forEach(r => {
-            grid.innerHTML += `
-            <div class="card">
-                <img src="${r.image}" class="recipe-img">
-                <h4>${r.name}</h4>
-            </div>`;
-        });
     }
 
     /* ================= INIT ================= */
