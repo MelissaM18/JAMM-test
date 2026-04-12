@@ -299,6 +299,63 @@ textarea {
     margin-bottom: 15px;
 }
 
+/* USER SECTION */
+.user-section {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ICONO */
+.user-icon {
+    background: white;
+    color: #5941A9;
+    border-radius: 50%;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+/* NOMBRE */
+.username {
+    color: white;
+    font-weight: bold;
+}
+
+/* MENU */
+.user-menu {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 150px;
+}
+
+.user-menu button {
+    background: none;
+    color: #5941A9;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.user-menu button:hover {
+    background: #E5D4ED;
+}
+
+/* HIDDEN */
+.hidden {
+    display: none;
+}
+
 /* ================= FOOTER ================= */
 
 .footer {
@@ -308,3 +365,4 @@ textarea {
     padding: 30px;
     text-align: center;
 }
+
