@@ -363,6 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     document.getElementById("loginBtn").onclick = login;
+    document.getElementById("registerBtn").onclick = register;
     document.getElementById("logoutBtn").onclick = logout;
 
     /* Detectar sesión activa */
@@ -371,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUI();
     });
 
-    async function registerTest() {
+    async function register() {
         const email = prompt("Correo:");
         const password = prompt("Contraseña:");
 
@@ -382,10 +383,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (error) {
             console.error(error);
-            alert("Error: " + error.message);
+            alert("Error al registrarse: " + error.message);
             return;
         }
 
-        alert("Usuario creado correctamente 💜");
+        alert("Registro exitoso 💜 Ahora inicia sesión");
     }
 });
