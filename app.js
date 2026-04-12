@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    let currentUser = null;
+
     /* ================= VARIABLES ================= */
 
     const navButtons = document.querySelectorAll(".nav-btn");
@@ -327,4 +329,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadRecipes();
 
+    /* ================= AUTH ================= */
+
+    async function login() {
+        const email = prompt("Correo:");
+        const password = prompt("Contraseña:");
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            alert("Error al iniciar sesión");
+            console.error(error);
+            return;
+        }
+
+        currentUser = data.user;
+        alert("Bienvenida 💜");
+        updateUI();
+    }
+
+    async function logout() {
+        await supabase.auth.signOut();
+        currentUser = null;
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById("loginBtn").style.display = currentUser ? "none" : "inline-block";
+        document.getElementById("logoutBtn").style.display = currentUser ? "inline-block" : "none";
+    }
+
+    document.getElementById("loginBtn").onclick = login;
+    document.getElementById("logoutBtn").onclick = logout;
+
+    /* Detectar sesión activa */
+    supabase.auth.getUser().then(({ data }) => {
+        currentUser = data.user;
+        updateUI();
+    });
 });
