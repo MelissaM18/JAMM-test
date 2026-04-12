@@ -1,9 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    /* ================= SUPABASE ================= */
+
+    const SUPABASE_URL = "https://trxffngabmynqbrhybjd.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyeGZmbmdhYm15bnFicmh5YmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDgzMzcsImV4cCI6MjA5MTU4NDMzN30.-jwnO1LZUxHPYv4-4MdqFNu9ZemWqiNH9QjIvW-Qz1w";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    /* ================= VARIABLES ================= */
+
     const navButtons = document.querySelectorAll(".nav-btn");
     const pageContent = document.getElementById("pageContent");
 
-    let recipes = JSON.parse(localStorage.getItem("jamm_recipes")) || [];
+    let recipes = [];
 
     /* ================= NAV ================= */
 
@@ -68,6 +77,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (page === "app") initInstall();
     }
 
+    /* ================= LOAD RECIPES ================= */
+
+    async function loadRecipes() {
+        const { data, error } = await supabase
+            .from("recipes")
+            .select("*")
+            .order("id", { ascending: false });
+
+        if (error) {
+            console.error("Error cargando recetas:", error);
+            return;
+        }
+
+        recipes = data;
+        renderPage("inicio");
+    }
+
     /* ================= HOME ================= */
 
     function initHome() {
@@ -77,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const container = document.getElementById("homeLatest");
 
-        recipes.slice(-4).reverse().forEach(r => {
+        recipes.slice(0, 4).forEach(r => {
             container.innerHTML += `
             <div class="card">
                 <img src="${r.image}" class="recipe-img">
@@ -122,8 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>`;
         });
 
-        /* EVENTOS */
-
         document.getElementById("add").onclick = renderForm;
 
         document.querySelectorAll(".view").forEach(btn => {
@@ -131,20 +155,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         document.querySelectorAll(".del").forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 if (!confirm("¿Eliminar receta? 💜")) return;
-                recipes = recipes.filter(r => r.id != btn.dataset.id);
-                save();
-                initRecetario();
+
+                await supabase
+                    .from("recipes")
+                    .delete()
+                    .eq("id", btn.dataset.id);
+
+                loadRecipes();
             };
         });
 
         document.querySelectorAll(".fav").forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = async () => {
+
                 const r = recipes.find(x => x.id == btn.dataset.id);
-                r.favorite = !r.favorite;
-                save();
-                initRecetario();
+
+                await supabase
+                    .from("recipes")
+                    .update({ favorite: !r.favorite })
+                    .eq("id", r.id);
+
+                loadRecipes();
             };
         });
     }
@@ -157,38 +190,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-        <button id="back" class="cute-btn">⬅ Volver</button>
+        <button id="back" class="back-btn">⬅ Volver</button>
 
         <div class="card detail-card">
 
-            <div class="detail-grid">
+            <img src="${recipe.image}" class="detail-img">
 
-                <!-- IZQUIERDA -->
-                <div class="detail-left">
-                        <img src="${recipe.image}" class="detail-img">
-                    <h4>Ingredientes</h4>
-                    <div class="ingredients-box">
-                        <ul>
-                            ${recipe.ingredients
-                                .split("\n")
-                                .map(i => `<li>${i}</li>`)
-                                .join("")}
-                        </ul>
-                    </div>
+            <h2>${recipe.name}</h2>
+            <p class="category">${recipe.category}</p>
+
+            <div class="detail-columns">
+
+                <div class="ingredients">
+                    <h4>🧾 Ingredientes</h4>
+                    <ul>
+                        ${recipe.ingredients.split("\n").map(i => `<li>${i}</li>`).join("")}
+                    </ul>
                 </div>
 
-                <!-- DERECHA -->
-                <div class="detail-right">
-
-                    <h2>${recipe.name}</h2>
-                    <p><strong>Categoría:</strong> ${recipe.category}</p>
-
-                    <h3>Preparación</h3>
-
-                    <p class="prep-text">
-                        ${recipe.preparation.replace(/\n/g, "<br><br>")}
-                    </p>
-
+                <div class="preparation">
+                    <h4>👩‍🍳 Preparación</h4>
+                    <p>${recipe.preparation}</p>
                 </div>
 
             </div>
@@ -199,25 +221,25 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("back").onclick = initRecetario;
     }
 
-    /* ================= FORMULARIO ================= */
+    /* ================= FORM ================= */
 
     function renderForm() {
 
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-        <button id="back" class="cute-btn">⬅ Volver</button>
+        <button id="back" class="back-btn">⬅ Volver</button>
 
         <div class="card form-card">
 
             <h3>🍰 Nueva receta</h3>
 
             <input id="name" placeholder="Nombre del postre">
-            <input id="cat" placeholder="Categoría (Ej: Pastel, Galletas)">
+            <input id="cat" placeholder="Categoría">
 
             <textarea id="ing" placeholder="Ingredientes (uno por línea)"></textarea>
 
-            <textarea id="prep" placeholder="Preparación paso a paso"></textarea>
+            <textarea id="prep" placeholder="Preparación detallada"></textarea>
 
             <input type="file" id="img">
 
@@ -228,32 +250,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("back").onclick = initRecetario;
 
-        document.getElementById("save").onclick = () => {
-
-            const nameInput = document.getElementById("name").value;
-            const catInput = document.getElementById("cat").value;
-            const ingInput = document.getElementById("ing").value;
-            const prepInput = document.getElementById("prep").value;
+        document.getElementById("save").onclick = async () => {
 
             const file = document.getElementById("img").files[0];
             if (!file) return alert("Selecciona imagen 💜");
 
             const reader = new FileReader();
 
-            reader.onload = e => {
+            reader.onload = async (e) => {
 
-                recipes.push({
-                    id: Date.now(),
-                    name: nameInput,
-                    category: catInput,
-                    ingredients: ingInput,
-                    preparation: prepInput,
+                await supabase.from("recipes").insert([{
+                    name: document.getElementById("name").value,
+                    category: document.getElementById("cat").value,
+                    ingredients: document.getElementById("ing").value,
+                    preparation: document.getElementById("prep").value,
                     image: e.target.result,
                     favorite: false
-                });
+                }]);
 
-                save();
-                initRecetario();
+                loadRecipes();
             };
 
             reader.readAsDataURL(file);
@@ -308,11 +323,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    /* ================= STORAGE ================= */
+    /* ================= INIT ================= */
 
-    function save() {
-        localStorage.setItem("jamm_recipes", JSON.stringify(recipes));
-    }
+    loadRecipes();
 
-    renderPage("inicio");
 });
