@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= SUPABASE ================= */
 
     const SUPABASE_URL = "https://hkgpbboxchmkliitytni.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc";
+    const SUPABASE_KEY = "TU_ANON_KEY_AQUI"; // ⚠️ cambia si vuelve a fallar
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -28,7 +28,21 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPage(page);
     }
 
-    /* ================= USER ================= */
+    /* ================= USER MENU ================= */
+
+    document.getElementById("userBtn").onclick = () => {
+        document.getElementById("userMenu").classList.toggle("hidden");
+    };
+
+    document.getElementById("loginOption").onclick = () => renderAuth("login");
+    document.getElementById("registerOption").onclick = () => renderAuth("register");
+
+    document.getElementById("logoutOption").onclick = async () => {
+        await supabase.auth.signOut();
+        location.reload();
+    };
+
+    /* ================= AUTH ================= */
 
     async function checkUser() {
         const { data } = await supabase.auth.getUser();
@@ -44,37 +58,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showUserUI() {
-        const username = currentUser.user_metadata?.username || "Usuario";
+        const username = currentUser?.user_metadata?.username || "Usuario";
 
         document.getElementById("usernameDisplay").textContent = username;
         document.getElementById("usernameDisplay").classList.remove("hidden");
+
+        document.getElementById("logoutOption").classList.remove("hidden");
+        document.getElementById("loginOption").classList.add("hidden");
+        document.getElementById("registerOption").classList.add("hidden");
     }
 
-    /* ================= AUTH ================= */
-
     function renderAuth(type) {
-
         pageContent.innerHTML = `
-        <button id="back" class="back-btn">⬅ Volver</button>
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2>${type === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
+                ${type === "register" ? `<input id="username" placeholder="Nombre">` : ""}
 
-        <div class="card form-card">
+                <input id="email" placeholder="Correo">
+                <input id="password" type="password" placeholder="Contraseña">
 
-            <h2>${type === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
+                <button id="authBtn">
+                    ${type === "login" ? "Entrar" : "Registrarse"}
+                </button>
 
-            ${type === "register" ? `<input id="username" placeholder="Nombre">` : ""}
-
-            <input id="email" placeholder="Correo">
-            <input id="password" type="password" placeholder="Contraseña">
-
-            <button id="authBtn">
-                ${type === "login" ? "Entrar" : "Registrarse"}
-            </button>
-
+                <p class="auth-switch">
+                    ${
+                        type === "login"
+                        ? `¿No tienes cuenta? <span id="switchAuth">Regístrate</span>`
+                        : `¿Ya tienes cuenta? <span id="switchAuth">Inicia sesión</span>`
+                    }
+                </p>
+            </div>
         </div>
         `;
 
-        document.getElementById("back").onclick = () => renderPage("inicio");
+        /* CAMBIO ENTRE LOGIN Y REGISTER */
+        document.getElementById("switchAuth").onclick = () => {
+            renderAuth(type === "login" ? "register" : "login");
+        };
 
+        /* ACCIÓN PRINCIPAL */
         document.getElementById("authBtn").onclick = async () => {
 
             const email = document.getElementById("email").value;
@@ -97,7 +121,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     email,
                     password,
                     options: {
-                        data: { username, role: "user" }
+                        data: {
+                            username,
+                            role: "user"
+                        }
                     }
                 });
 
@@ -110,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    /* ================= LOAD RECIPES ================= */
+    /* ================= RECETAS ================= */
 
     async function loadRecipes() {
         const { data, error } = await supabase
@@ -155,18 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
             case "favoritos":
                 content = `<h2>Favoritos 💖</h2><div id="favoritos"></div>`;
                 break;
-
-            case "app":
-                content = `
-                <div style="text-align:center;">
-                    <h2>📲 Instalar JAMM</h2>
-                    <button id="installBtn">Instalar App</button>
-                </div>`;
-                break;
-
-            case "tienda":
-                content = `<h2>Tienda 🛒</h2><p>Próximamente</p>`;
-                break;
         }
 
         pageContent.innerHTML = content;
@@ -209,20 +224,15 @@ document.addEventListener("DOMContentLoaded", () => {
         recipes.forEach(r => {
             grid.innerHTML += `
             <div class="card recipe-card">
-
                 <img src="${r.image}" class="recipe-img">
-
                 <h4>${r.name}</h4>
                 <p>${r.category}</p>
 
                 <button class="view" data-id="${r.id}">Ver más 👀</button>
 
                 ${isAdmin ? `
-                <div class="card-actions">
-                    <button class="del" data-id="${r.id}">🗑</button>
-                </div>
+                <button class="del" data-id="${r.id}">🗑</button>
                 ` : ""}
-
             </div>`;
         });
 
@@ -242,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* ================= FORM (🔥 AQUÍ ESTABA EL ERROR) ================= */
+    /* ================= FORM ================= */
 
     function renderForm() {
 
@@ -255,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <h3>🍰 Nueva receta</h3>
 
-            <input id="name" placeholder="Nombre del postre">
+            <input id="name" placeholder="Nombre">
             <input id="cat" placeholder="Categoría">
 
             <textarea id="ing" placeholder="Ingredientes"></textarea>

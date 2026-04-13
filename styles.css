@@ -5,6 +5,10 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background-color: #E5D4ED;
     color: #514F59;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* ================= HEADER ================= */
@@ -58,6 +62,7 @@ nav {
 
 main {
     padding: 2rem;
+    flex: 1;
 }
 
 /* ================= CARD ================= */
@@ -122,12 +127,8 @@ button {
     padding: 10px 15px;
     border-radius: 20px;
     cursor: pointer;
-    margin-top: 10px;
     font-weight: bold;
     transition: 0.25s;
-}
-
-button {
     width: fit-content;
 }
 
@@ -135,17 +136,14 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* BOTÓN VOLVER */
-#back {
+.back-btn {
     margin-bottom: 20px;
 }
 
-/* BOTÓN CUTE ESPECIAL */
 .cute-btn {
-    background: linear-gradient(135deg, #6D72C3, #5941A9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* DELETE */
 .del {
     background: #ff4d6d;
 }
@@ -154,7 +152,17 @@ button:hover {
     background: #d90429;
 }
 
-/* ================= RECETAS ================= */
+/* ================= RECETARIO ================= */
+
+#recetario {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#add {
+    align-self: flex-start;
+}
 
 .recipe-card h4 {
     margin: 5px 0;
@@ -165,11 +173,10 @@ button:hover {
     color: #777;
 }
 
-/* BOTONES DENTRO DE CARD */
-.card-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
+/* ================= DETALLE ================= */
+
+.detail-card {
+    padding: 25px;
 }
 
 .detail-grid {
@@ -179,16 +186,10 @@ button:hover {
     margin-top: 20px;
 }
 
-.detail-left {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.detail-right {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .ingredients-list {
@@ -199,59 +200,11 @@ button:hover {
 
 .ingredients-list li {
     margin-bottom: 8px;
+    margin-left: 15px;
 }
 
 .prep-text {
     line-height: 1.6;
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-#recetario {
-    display: flex;
-    flex-direction: column;
-    gap: 20px; /* 🔥 separación entre botón y recetas */
-}
-
-#add {
-    align-self: flex-start; /* evita que se estire */
-    margin-bottom: 10px;
-}
-
-#recetario .grid-4 {
-    margin-top: 10px;
-}
-
-#add {
-    background: linear-gradient(135deg, #6D72C3, #5941A9);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-/* ================= DETALLE ================= */
-
-.detail-card {
-    padding: 25px;
-}
-
-.detail-top {
-    display: flex;
-    gap: 30px;
-    align-items: flex-start;
-    margin-top: 10px;
-}
-
-.detail-info {
-    flex: 1;
-    min-width: 250px;
-}
-
-.detail-bottom {
-    margin-top: 30px;
 }
 
 /* ================= FORM ================= */
@@ -283,6 +236,64 @@ textarea {
     height: 100px;
 }
 
+/* ================= AUTH ================= */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 350px;
+    padding: 25px;
+    border-radius: 25px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.auth-card h2 {
+    margin-bottom: 15px;
+    color: #5941A9;
+}
+
+.auth-card input {
+    margin-bottom: 10px;
+}
+
+.auth-switch {
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.auth-switch span {
+    color: #5941A9;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.auth-switch span:hover {
+    text-decoration: underline;
+}
+
+.auth-card {
+    animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ================= HOME ================= */
 
 .home-hero {
@@ -299,7 +310,8 @@ textarea {
     margin-bottom: 15px;
 }
 
-/* USER SECTION */
+/* ================= USER ================= */
+
 .user-section {
     position: relative;
     display: flex;
@@ -307,23 +319,26 @@ textarea {
     gap: 10px;
 }
 
-/* ICONO */
 .user-icon {
     background: white;
-    color: #5941A9;
     border-radius: 50%;
     padding: 10px;
     border: none;
     cursor: pointer;
+    font-size: 1.2rem;
+    color: #5941A9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* NOMBRE */
-.username {
-    color: white;
+#usernameDisplay {
     font-weight: bold;
+    color: white;
 }
 
 /* MENU */
+
 .user-menu {
     position: absolute;
     top: 45px;
@@ -344,6 +359,7 @@ textarea {
     border: none;
     padding: 8px;
     cursor: pointer;
+    text-align: left;
     border-radius: 10px;
 }
 
@@ -351,7 +367,6 @@ textarea {
     background: #E5D4ED;
 }
 
-/* HIDDEN */
 .hidden {
     display: none;
 }
@@ -359,10 +374,8 @@ textarea {
 /* ================= FOOTER ================= */
 
 .footer {
-    margin-top: 50px;
     background: #5941A9;
     color: white;
     padding: 30px;
     text-align: center;
 }
-
