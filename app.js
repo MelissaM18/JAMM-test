@@ -114,12 +114,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (error) return alert(error.message);
 
-                alert("Cuenta creada 💜 Ahora inicia sesión");
+                alert("Cuenta creada 💜");
             }
 
             location.reload();
         };
     }
+
+    console.log(currentUser.user_metadata);
 
     /* ================= LOAD RECIPES ================= */
 
