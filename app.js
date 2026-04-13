@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= VARIABLES ================= */
 
     let currentUser = null;
+    let isAdmin = false;
     let recipes = [];
 
     const navButtons = document.querySelectorAll(".nav-btn");
@@ -27,50 +28,29 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPage(page);
     }
 
-    /* ================= USER MENU ================= */
-
-    const userBtn = document.getElementById("userBtn");
-    const userMenu = document.getElementById("userMenu");
-
-    userBtn.onclick = () => {
-        userMenu.classList.toggle("hidden");
-    };
-
-    document.getElementById("loginOption").onclick = () => renderAuth("login");
-    document.getElementById("registerOption").onclick = () => renderAuth("register");
-
-    document.getElementById("logoutOption").onclick = async () => {
-        await supabase.auth.signOut();
-        location.reload();
-    };
-
-    /* ================= AUTH ================= */
+    /* ================= USER ================= */
 
     async function checkUser() {
         const { data } = await supabase.auth.getUser();
 
         if (data.user) {
             currentUser = data.user;
+
+            const role = currentUser.user_metadata?.role;
+            isAdmin = role === "admin";
+
             showUserUI();
         }
     }
 
     function showUserUI() {
-        if (!currentUser) return;
-
         const username = currentUser.user_metadata?.username || "Usuario";
 
         document.getElementById("usernameDisplay").textContent = username;
         document.getElementById("usernameDisplay").classList.remove("hidden");
-
-        document.getElementById("logoutOption").classList.remove("hidden");
-        document.getElementById("loginOption").classList.add("hidden");
-        document.getElementById("registerOption").classList.add("hidden");
     }
 
-    function isAdmin() {
-        return currentUser?.user_metadata?.role === "admin";
-    }
+    /* ================= AUTH ================= */
 
     function renderAuth(type) {
 
@@ -117,10 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     email,
                     password,
                     options: {
-                        data: {
-                            username,
-                            role: "user"
-                        }
+                        data: { username, role: "user" }
                     }
                 });
 
@@ -196,7 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (page === "inicio") initHome();
         if (page === "recetario") initRecetario();
-        if (page === "favoritos") initFavoritos();
     }
 
     /* ================= HOME ================= */
@@ -224,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-            ${isAdmin() ? `<button id="add" class="cute-btn">➕ Nueva receta</button>` : ""}
+            ${isAdmin ? `<button id="add" class="cute-btn">➕ Nueva receta</button>` : ""}
             <div class="grid-4"></div>
         `;
 
@@ -241,17 +217,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <button class="view" data-id="${r.id}">Ver más 👀</button>
 
+                ${isAdmin ? `
                 <div class="card-actions">
-                    <button class="fav" data-id="${r.id}">
-                        ${r.favorite ? "💖" : "🤍"}
-                    </button>
-                    ${isAdmin() ? `<button class="del" data-id="${r.id}">🗑</button>` : ""}
+                    <button class="del" data-id="${r.id}">🗑</button>
                 </div>
+                ` : ""}
 
             </div>`;
         });
 
-        if (isAdmin()) {
+        if (isAdmin) {
             document.getElementById("add").onclick = renderForm;
         }
 
@@ -261,25 +236,62 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll(".del").forEach(btn => {
             btn.onclick = async () => {
-                if (!isAdmin()) return alert("No autorizado 🚫");
-
                 await supabase.from("recipes").delete().eq("id", btn.dataset.id);
                 loadRecipes();
             };
         });
+    }
 
-        document.querySelectorAll(".fav").forEach(btn => {
-            btn.onclick = async () => {
-                const r = recipes.find(x => x.id == btn.dataset.id);
+    /* ================= FORM (🔥 AQUÍ ESTABA EL ERROR) ================= */
 
-                await supabase
-                    .from("recipes")
-                    .update({ favorite: !r.favorite })
-                    .eq("id", r.id);
+    function renderForm() {
+
+        const container = document.getElementById("recetario");
+
+        container.innerHTML = `
+        <button id="back" class="back-btn">⬅ Volver</button>
+
+        <div class="card form-card">
+
+            <h3>🍰 Nueva receta</h3>
+
+            <input id="name" placeholder="Nombre del postre">
+            <input id="cat" placeholder="Categoría">
+
+            <textarea id="ing" placeholder="Ingredientes"></textarea>
+            <textarea id="prep" placeholder="Preparación"></textarea>
+
+            <input type="file" id="img">
+
+            <button id="save">Guardar</button>
+
+        </div>
+        `;
+
+        document.getElementById("back").onclick = initRecetario;
+
+        document.getElementById("save").onclick = async () => {
+
+            const file = document.getElementById("img").files[0];
+            if (!file) return alert("Selecciona imagen");
+
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+
+                await supabase.from("recipes").insert([{
+                    name: document.getElementById("name").value,
+                    category: document.getElementById("cat").value,
+                    ingredients: document.getElementById("ing").value,
+                    preparation: document.getElementById("prep").value,
+                    image: e.target.result
+                }]);
 
                 loadRecipes();
             };
-        });
+
+            reader.readAsDataURL(file);
+        };
     }
 
     /* ================= DETALLE ================= */
@@ -297,53 +309,19 @@ document.addEventListener("DOMContentLoaded", () => {
             <img src="${recipe.image}" class="detail-img">
 
             <h2>${recipe.name}</h2>
-            <p class="category">${recipe.category}</p>
 
-            <div class="detail-columns">
+            <h4>Ingredientes</h4>
+            <ul>
+                ${recipe.ingredients.split("\n").map(i => `<li>${i}</li>`).join("")}
+            </ul>
 
-                <div class="ingredients">
-                    <h4>🧾 Ingredientes</h4>
-                    <ul>
-                        ${recipe.ingredients.split("\n").map(i => `<li>${i}</li>`).join("")}
-                    </ul>
-                </div>
-
-                <div class="preparation">
-                    <h4>👩‍🍳 Preparación</h4>
-                    <p>${recipe.preparation}</p>
-                </div>
-
-            </div>
+            <h4>Preparación</h4>
+            <p>${recipe.preparation}</p>
 
         </div>
         `;
 
         document.getElementById("back").onclick = initRecetario;
-    }
-
-    /* ================= FAVORITOS ================= */
-
-    function initFavoritos() {
-
-        const container = document.getElementById("favoritos");
-
-        const favs = recipes.filter(r => r.favorite);
-
-        if (favs.length === 0) {
-            container.innerHTML = "<p>No tienes favoritos 💜</p>";
-            return;
-        }
-
-        container.innerHTML = `<div class="grid-4"></div>`;
-        const grid = container.querySelector(".grid-4");
-
-        favs.forEach(r => {
-            grid.innerHTML += `
-            <div class="card">
-                <img src="${r.image}" class="recipe-img">
-                <h4>${r.name}</h4>
-            </div>`;
-        });
     }
 
     /* ================= INIT ================= */
