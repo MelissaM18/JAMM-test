@@ -29,8 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* ================= USER MENU ================= */
 
-    document.getElementById("userBtn").onclick = () => {
-        document.getElementById("userMenu").classList.toggle("hidden");
+    const userBtn = document.getElementById("userBtn");
+    const userMenu = document.getElementById("userMenu");
+
+    userBtn.onclick = () => {
+        userMenu.classList.toggle("hidden");
     };
 
     document.getElementById("loginOption").onclick = () => renderAuth("login");
@@ -53,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showUserUI() {
+        if (!currentUser) return;
+
         const username = currentUser.user_metadata?.username || "Usuario";
 
         document.getElementById("usernameDisplay").textContent = username;
@@ -61,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("logoutOption").classList.remove("hidden");
         document.getElementById("loginOption").classList.add("hidden");
         document.getElementById("registerOption").classList.add("hidden");
+    }
+
+    function isAdmin() {
+        return currentUser?.user_metadata?.role === "admin";
     }
 
     function renderAuth(type) {
@@ -108,7 +117,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     email,
                     password,
                     options: {
-                        data: { username }
+                        data: {
+                            username,
+                            role: "user"
+                        }
                     }
                 });
 
@@ -120,8 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
             location.reload();
         };
     }
-
-    console.log(currentUser.user_metadata);
 
     /* ================= LOAD RECIPES ================= */
 
@@ -187,7 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (page === "inicio") initHome();
         if (page === "recetario") initRecetario();
         if (page === "favoritos") initFavoritos();
-        if (page === "app") initInstall();
     }
 
     /* ================= HOME ================= */
@@ -215,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = document.getElementById("recetario");
 
         container.innerHTML = `
-            <button id="add" class="cute-btn">➕ Nueva receta</button>
+            ${isAdmin() ? `<button id="add" class="cute-btn">➕ Nueva receta</button>` : ""}
             <div class="grid-4"></div>
         `;
 
@@ -236,13 +245,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button class="fav" data-id="${r.id}">
                         ${r.favorite ? "💖" : "🤍"}
                     </button>
-                    <button class="del" data-id="${r.id}">🗑</button>
+                    ${isAdmin() ? `<button class="del" data-id="${r.id}">🗑</button>` : ""}
                 </div>
 
             </div>`;
         });
 
-        document.getElementById("add").onclick = renderForm;
+        if (isAdmin()) {
+            document.getElementById("add").onclick = renderForm;
+        }
 
         document.querySelectorAll(".view").forEach(btn => {
             btn.onclick = () => renderDetail(btn.dataset.id);
@@ -250,6 +261,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll(".del").forEach(btn => {
             btn.onclick = async () => {
+                if (!isAdmin()) return alert("No autorizado 🚫");
+
                 await supabase.from("recipes").delete().eq("id", btn.dataset.id);
                 loadRecipes();
             };
@@ -306,6 +319,31 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         document.getElementById("back").onclick = initRecetario;
+    }
+
+    /* ================= FAVORITOS ================= */
+
+    function initFavoritos() {
+
+        const container = document.getElementById("favoritos");
+
+        const favs = recipes.filter(r => r.favorite);
+
+        if (favs.length === 0) {
+            container.innerHTML = "<p>No tienes favoritos 💜</p>";
+            return;
+        }
+
+        container.innerHTML = `<div class="grid-4"></div>`;
+        const grid = container.querySelector(".grid-4");
+
+        favs.forEach(r => {
+            grid.innerHTML += `
+            <div class="card">
+                <img src="${r.image}" class="recipe-img">
+                <h4>${r.name}</h4>
+            </div>`;
+        });
     }
 
     /* ================= INIT ================= */
