@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= SUPABASE ================= */
 
     const SUPABASE_URL = "https://hkgpbboxchmkliitytni.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc"; // ⚠️ cambia si vuelve a fallar
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc"; // ⚠️ asegúrate que sea la correcta
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -28,19 +28,35 @@ document.addEventListener("DOMContentLoaded", () => {
         renderPage(page);
     }
 
-    /* ================= USER MENU ================= */
+    /* ================= USER BUTTON ================= */
 
     document.getElementById("userBtn").onclick = () => {
+
+        if (!currentUser) {
+            renderAuth("login");
+            return;
+        }
+
         document.getElementById("userMenu").classList.toggle("hidden");
     };
-
-    document.getElementById("loginOption").onclick = () => renderAuth("login");
-    document.getElementById("registerOption").onclick = () => renderAuth("register");
 
     document.getElementById("logoutOption").onclick = async () => {
         await supabase.auth.signOut();
         location.reload();
     };
+
+    /* ================= CLICK FUERA ================= */
+
+    document.addEventListener("click", (e) => {
+        const menu = document.getElementById("userMenu");
+        const btn = document.getElementById("userBtn");
+
+        if (!menu || !btn) return;
+
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.add("hidden");
+        }
+    });
 
     /* ================= AUTH ================= */
 
@@ -62,17 +78,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.getElementById("usernameDisplay").textContent = username;
         document.getElementById("usernameDisplay").classList.remove("hidden");
-
-        document.getElementById("logoutOption").classList.remove("hidden");
-        document.getElementById("loginOption").classList.add("hidden");
-        document.getElementById("registerOption").classList.add("hidden");
     }
 
     function renderAuth(type) {
+
         pageContent.innerHTML = `
         <div class="auth-container">
             <div class="auth-card">
+
                 <h2>${type === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
+
                 ${type === "register" ? `<input id="username" placeholder="Nombre">` : ""}
 
                 <input id="email" placeholder="Correo">
@@ -89,16 +104,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         : `¿Ya tienes cuenta? <span id="switchAuth">Inicia sesión</span>`
                     }
                 </p>
+
             </div>
         </div>
         `;
 
-        /* CAMBIO ENTRE LOGIN Y REGISTER */
         document.getElementById("switchAuth").onclick = () => {
             renderAuth(type === "login" ? "register" : "login");
         };
 
-        /* ACCIÓN PRINCIPAL */
         document.getElementById("authBtn").onclick = async () => {
 
             const email = document.getElementById("email").value;
@@ -193,7 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= HOME ================= */
 
     function initHome() {
-
         document.getElementById("exploreBtn")
             ?.addEventListener("click", () => goToPage("recetario"));
 
@@ -230,9 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <button class="view" data-id="${r.id}">Ver más 👀</button>
 
-                ${isAdmin ? `
-                <button class="del" data-id="${r.id}">🗑</button>
-                ` : ""}
+                ${isAdmin ? `<button class="del" data-id="${r.id}">🗑</button>` : ""}
             </div>`;
         });
 
@@ -262,7 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <button id="back" class="back-btn">⬅ Volver</button>
 
         <div class="card form-card">
-
             <h3>🍰 Nueva receta</h3>
 
             <input id="name" placeholder="Nombre">
@@ -274,7 +284,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <input type="file" id="img">
 
             <button id="save">Guardar</button>
-
         </div>
         `;
 
@@ -290,10 +299,10 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.onload = async (e) => {
 
                 await supabase.from("recipes").insert([{
-                    name: document.getElementById("name").value,
-                    category: document.getElementById("cat").value,
-                    ingredients: document.getElementById("ing").value,
-                    preparation: document.getElementById("prep").value,
+                    name: name.value,
+                    category: cat.value,
+                    ingredients: ing.value,
+                    preparation: prep.value,
                     image: e.target.result
                 }]);
 
@@ -315,9 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button id="back" class="back-btn">⬅ Volver</button>
 
         <div class="card detail-card">
-
             <img src="${recipe.image}" class="detail-img">
-
             <h2>${recipe.name}</h2>
 
             <h4>Ingredientes</h4>
@@ -327,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <h4>Preparación</h4>
             <p>${recipe.preparation}</p>
-
         </div>
         `;
 
