@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ================= SUPABASE ================= */
 
     const SUPABASE_URL = "https://hkgpbboxchmkliitytni.supabase.co";
-    const SUPABASE_KEY = "TU_ANON_KEY_AQUI"; // ⚠️ cambia si vuelve a fallar
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc"; // ⚠️ cambia si vuelve a fallar
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
