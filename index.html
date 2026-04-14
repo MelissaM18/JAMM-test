@@ -1,62 +1,65 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>JAMM - Repostería Creativa</title>
+    <title>JAMM - Repostería Creativa</title>
 
-        <link rel="manifest" href="manifest.json">
-        <meta name="theme-color" content="#6D72C3">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6D72C3">
 
-        <link rel="stylesheet" href="styles.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
 
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    </head>
-        
-    <body>
-        <header>
-            <div class="logo">🍰 JAMM</div>
-            <nav>
-                <button class="nav-btn" data-page="inicio">Inicio</button>
-                <button class="nav-btn" data-page="recetario">Recetario</button>
-                <button class="nav-btn" data-page="favoritos">Favoritos</button>
-                <button class="nav-btn" data-page="app">App</button>
-                <button class="nav-btn" data-page="tienda">Tienda</button>
-            </nav>
-            <div class="user-section">
-                <button id="userBtn" class="user-icon">
-                    <i class="fa-solid fa-user"></i>
-                </button>
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-                <span id="usernameDisplay" class="hidden"></span>
+    <!-- ICONOS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 
-                <div id="userMenu" class="user-menu hidden">
-                    <button id="logoutOption">Cerrar sesión</button>
-                </div>
-            </div>
-        </header>
+<body>
 
-        <main>
-            <div id="pageContent" class="card"></div>
-        </main>
+<header>
+    <div class="logo">JAMM</div>
 
-        <script src="app.js"></script>
+    <nav>
+        <button class="nav-btn" data-page="inicio">Inicio</button>
+        <button class="nav-btn" data-page="recetario">Recetario</button>
+        <button class="nav-btn" data-page="blog">Blog</button>
+    </nav>
 
-        <script>
-            if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("/JAMM-test/service-worker.js");
-            }
-        </script>
-    </body>
-    <footer class="footer">
-        <div class="footer-container">
-            <div>
-                <h3>🍰 JAMM</h3>
-                <p>Recetas dulces donde sea 💜</p>
-            </div>
+    <div class="user-section">
+        <button id="userBtn" class="user-icon">
+            <i class="fa-solid fa-user"></i>
+        </button>
+
+        <span id="usernameDisplay" class="hidden"></span>
+
+        <div id="userMenu" class="user-menu hidden">
+            <button id="logoutOption">Cerrar sesión</button>
         </div>
-    </footer>
+    </div>
+</header>
+
+<main>
+    <div id="pageContent"></div>
+</main>
+
+<footer class="footer">
+    <h3>🍰 JAMM</h3>
+    <p>Recetas dulces donde sea 💜</p>
+</footer>
+
+<script src="app.js"></script>
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./service-worker.js");
+}
+</script>
+
+</body>
 </html>

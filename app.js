@@ -1,125 +1,150 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-   
     /* ================= SUPABASE ================= */
-
     const SUPABASE_URL = "https://hkgpbboxchmkliitytni.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc"; // ⚠️ asegúrate que sea la correcta
-
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrZ3BiYm94Y2hta2xpaXR5dG5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTkzOTMsImV4cCI6MjA5MTU5NTM5M30.NAeWtu3iaass__hptSGmnm-AjSI-xEhdb1n3_TKg-sc";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-     console.log(window.supabase);
-
-    const { data, error }  = supabase
-    .from("recipes")
-    .select("*");
-
-console.log(data, error);
-
-    /* ================= VARIABLES ================= */
-
+    /* ================= STATE ================= */
     let currentUser = null;
     let isAdmin = false;
     let recipes = [];
+    let posts = [];
+    let deferredPrompt = null;
 
     const navButtons = document.querySelectorAll(".nav-btn");
     const pageContent = document.getElementById("pageContent");
 
-    /* ================= NAV ================= */
+    init();
 
-    navButtons.forEach(btn => {
-        btn.addEventListener("click", () => goToPage(btn.dataset.page));
-    });
-
-    function goToPage(page) {
-        navButtons.forEach(b => b.classList.remove("active"));
-        document.querySelector(`[data-page="${page}"]`)?.classList.add("active");
-        renderPage(page);
+    /* ================= INIT ================= */
+    async function init() {
+        bindEvents();
+        setupPWA();
+        await checkUser();
+        await loadRecipes();
+        await loadPosts();
+        goToPage("inicio");
     }
 
-    /* ================= USER BUTTON ================= */
+    /* ================= EVENTS ================= */
+    function bindEvents() {
 
-    document.getElementById("userBtn").onclick = () => {
+        navButtons.forEach(btn => {
+            btn.addEventListener("click", () => goToPage(btn.dataset.page));
+        });
 
-        if (!currentUser) {
-            renderAuth("login");
-            return;
-        }
+        document.getElementById("userBtn").onclick = () => {
+            if (!currentUser) return renderAuth();
+            document.getElementById("userMenu").classList.toggle("hidden");
+        };
 
-        document.getElementById("userMenu").classList.toggle("hidden");
-    };
+        document.getElementById("logoutOption").onclick = async () => {
+            await supabase.auth.signOut();
+            location.reload();
+        };
 
-    document.getElementById("logoutOption").onclick = async () => {
-        await supabase.auth.signOut();
-        location.reload();
-    };
+        document.addEventListener("click", (e) => {
 
-    /* ================= CLICK FUERA ================= */
+            // RECETAS
+            if (e.target.classList.contains("view-btn")) {
+                renderDetail(e.target.dataset.id);
+            }
 
-    document.addEventListener("click", (e) => {
-        const menu = document.getElementById("userMenu");
-        const btn = document.getElementById("userBtn");
+            if (e.target.id === "backBtn") {
+                goToPage("recetario");
+            }
 
-        if (!menu || !btn) return;
+            if (e.target.id === "exploreBtn") {
+                goToPage("recetario");
+            }
 
-        if (!menu.contains(e.target) && !btn.contains(e.target)) {
-            menu.classList.add("hidden");
-        }
-    });
+            // PWA
+            if (e.target.id === "installBtn") {
+                installApp();
+            }
+
+            // BLOG
+            if (e.target.id === "publishPost") {
+                createPost();
+            }
+
+            // ELIMINAR POST
+            const deletePostBtn = e.target.closest(".delete-post");
+            if (deletePostBtn) {
+                deletePost(deletePostBtn.dataset.id);
+            }
+
+            // ELIMINAR RECETA
+            const deleteRecipeBtn = e.target.closest(".delete-recipe");
+            if (deleteRecipeBtn) {
+                deleteRecipe(deleteRecipeBtn.dataset.id);
+            }
+
+        });
+    }
+
+    /* ================= PWA ================= */
+    function setupPWA() {
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+    }
+
+    async function installApp() {
+        if (!deferredPrompt) return alert("No disponible aún");
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    }
 
     /* ================= AUTH ================= */
-
     async function checkUser() {
         const { data } = await supabase.auth.getUser();
 
         if (data.user) {
             currentUser = data.user;
+            isAdmin = data.user.user_metadata?.role === "admin";
 
-            const role = currentUser.user_metadata?.role;
-            isAdmin = role === "admin";
+            document.getElementById("usernameDisplay").textContent =
+                data.user.user_metadata?.username || "Usuario";
 
-            showUserUI();
+            document.getElementById("usernameDisplay").classList.remove("hidden");
         }
     }
 
-    function showUserUI() {
-        const username = currentUser?.user_metadata?.username || "Usuario";
+    function renderAuth(mode = "login") {
 
-        document.getElementById("usernameDisplay").textContent = username;
-        document.getElementById("usernameDisplay").classList.remove("hidden");
-    }
-
-    function renderAuth(type) {
+        const isLogin = mode === "login";
 
         pageContent.innerHTML = `
         <div class="auth-container">
-            <div class="auth-card">
+            <div class="auth-box">
+                <h2>${isLogin ? "Bienvenida 💜" : "Crear cuenta ✨"}</h2>
 
-                <h2>${type === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>
-
-                ${type === "register" ? `<input id="username" placeholder="Nombre">` : ""}
+                ${!isLogin ? `<input id="username" placeholder="Nombre de usuario">` : ""}
 
                 <input id="email" placeholder="Correo">
                 <input id="password" type="password" placeholder="Contraseña">
 
                 <button id="authBtn">
-                    ${type === "login" ? "Entrar" : "Registrarse"}
+                    ${isLogin ? "Iniciar sesión" : "Registrarse"}
                 </button>
 
-                <p class="auth-switch">
+                <p class="switch-auth">
                     ${
-                        type === "login"
+                        isLogin
                         ? `¿No tienes cuenta? <span id="switchAuth">Regístrate</span>`
                         : `¿Ya tienes cuenta? <span id="switchAuth">Inicia sesión</span>`
                     }
                 </p>
-
             </div>
         </div>
         `;
 
         document.getElementById("switchAuth").onclick = () => {
-            renderAuth(type === "login" ? "register" : "login");
+            renderAuth(isLogin ? "register" : "login");
         };
 
         document.getElementById("authBtn").onclick = async () => {
@@ -127,231 +152,245 @@ console.log(data, error);
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            if (type === "login") {
+            if (!email || !password) return alert("Completa los campos");
 
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
+            if (isLogin) {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) return alert(error.message);
-
             } else {
-
                 const username = document.getElementById("username").value;
+                if (!username) return alert("Agrega un nombre");
 
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
-                        data: {
-                            username,
-                            role: "user"
-                        }
+                        data: { username, role: "user" }
                     }
                 });
 
                 if (error) return alert(error.message);
 
                 alert("Cuenta creada 💜");
+                return renderAuth("login");
             }
 
             location.reload();
         };
     }
 
-    /* ================= RECETAS ================= */
+    /* ================= DATA ================= */
 
     async function loadRecipes() {
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from("recipes")
             .select("*")
             .order("id", { ascending: false });
 
-        if (error) {
-            console.error(error);
-            return;
+        recipes = data || [];
+    }
+
+    async function loadPosts() {
+        const { data } = await supabase
+            .from("posts")
+            .select("*")
+            .order("id", { ascending: false });
+
+        posts = data || [];
+    }
+
+    /* ================= BLOG ================= */
+
+    async function createPost() {
+
+        if (!currentUser) return alert("Inicia sesión 💜");
+
+        const text = document.getElementById("postText").value;
+        const file = document.getElementById("postImage").files[0];
+
+        if (!text) return alert("Escribe algo");
+
+        let imageUrl = null;
+
+        // SUBIR IMAGEN
+        if (file) {
+            const fileName = `${currentUser.id}-${Date.now()}`;
+
+            const { error } = await supabase.storage
+                .from("post-images")
+                .upload(fileName, file);
+
+            if (error) {
+                console.error(error);
+                return alert("Error subiendo imagen");
+            }
+
+            const { data } = supabase.storage
+                .from("post-images")
+                .getPublicUrl(fileName);
+
+            imageUrl = data.publicUrl;
         }
 
-        recipes = data;
-        renderPage("inicio");
+        await supabase.from("posts").insert([{
+            user_id: currentUser.id,
+            username: currentUser.user_metadata?.username || "Usuario",
+            content: text,
+            image: imageUrl
+        }]);
+
+        await loadPosts();
+        renderPage("blog");
+    }
+
+    async function deletePost(id) {
+        await supabase.from("posts").delete().eq("id", id);
+        await loadPosts();
+        renderPage("blog");
+    }
+
+    async function deleteRecipe(id) {
+        await supabase.from("recipes").delete().eq("id", id);
+        await loadRecipes();
+        renderPage("recetario");
+    }
+
+    /* ================= NAV ================= */
+
+    function goToPage(page) {
+        navButtons.forEach(b => b.classList.remove("active"));
+        document.querySelector(`[data-page="${page}"]`)?.classList.add("active");
+        renderPage(page);
     }
 
     /* ================= RENDER ================= */
 
     function renderPage(page) {
 
-        let content = "";
+        let html = "";
 
-        switch (page) {
-
-            case "inicio":
-                content = `
+        if (page === "inicio") {
+            html = `
                 <div class="home-hero">
-                    <h1>🍰 Bienvenida a JAMM</h1>
+                    <h1>🍰 JAMM</h1>
                     <p>Endulza tu día con recetas 💜</p>
                     <button id="exploreBtn">Explorar</button>
+                    <button id="installBtn">📲 Instalar App</button>
                 </div>
 
-                <h3>✨ Últimas recetas</h3>
-                <div id="homeLatest" class="grid-4"></div>
-                `;
-                break;
-
-            case "recetario":
-                content = `<h2>Recetario</h2><div id="recetario"></div>`;
-                break;
-
-            case "favoritos":
-                content = `<h2>Favoritos 💖</h2><div id="favoritos"></div>`;
-                break;
+                <h3>Últimas recetas</h3>
+                <div id="homeGrid" class="grid-4"></div>
+            `;
         }
 
-        pageContent.innerHTML = content;
+        if (page === "recetario") {
+            html = `
+                <h2>Recetario</h2>
+                <div id="recetario" class="grid-4"></div>
+            `;
+        }
+
+        if (page === "blog") {
+            html = `
+                <div class="blog-layout">
+
+                    <!-- IZQUIERDA -->
+                    <div class="blog-left">
+                        <h2>Crear publicación 🍰</h2>
+
+                        ${
+                            currentUser
+                            ? `
+                            <div class="card blog-form">
+                                <textarea id="postText" placeholder="¿Qué quieres compartir hoy? 💜"></textarea>
+
+                                <input type="file" id="postImage" accept="image/*">
+
+                                <button id="publishPost">Publicar</button>
+                            </div>
+                            `
+                            : `<p>Inicia sesión para publicar 💜</p>`
+                        }
+                    </div>
+
+                    <!-- DERECHA -->
+                    <div class="blog-right">
+                        <h2>Publicaciones</h2>
+                        <div id="postsContainer"></div>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        pageContent.innerHTML = html;
 
         if (page === "inicio") initHome();
         if (page === "recetario") initRecetario();
+        if (page === "blog") initBlog();
     }
 
-    /* ================= HOME ================= */
+    /* ================= RECETAS ================= */
+
+    function recipeCard(r) {
+        return `
+        <div class="card recipe-card">
+            <img src="${r.image}" class="recipe-img">
+            <h4>${r.name}</h4>
+
+            <button class="view-btn" data-id="${r.id}">Ver más 👀</button>
+
+            ${isAdmin ? `<button class="delete-recipe" data-id="${r.id}">🗑</button>` : ""}
+        </div>
+        `;
+    }
 
     function initHome() {
-        document.getElementById("exploreBtn")
-            ?.addEventListener("click", () => goToPage("recetario"));
-
-        const container = document.getElementById("homeLatest");
-
-        recipes.slice(0, 4).forEach(r => {
-            container.innerHTML += `
-            <div class="card">
-                <img src="${r.image}" class="recipe-img">
-                <h4>${r.name}</h4>
-            </div>`;
-        });
+        const c = document.getElementById("homeGrid");
+        c.innerHTML = "";
+        recipes.slice(0, 4).forEach(r => c.innerHTML += recipeCard(r));
     }
-
-    /* ================= RECETARIO ================= */
 
     function initRecetario() {
+        const c = document.getElementById("recetario");
+        c.innerHTML = "";
+        recipes.forEach(r => c.innerHTML += recipeCard(r));
+    }
 
-        const container = document.getElementById("recetario");
+    /* ================= BLOG RENDER ================= */
 
-        container.innerHTML = `
-            ${isAdmin ? `<button id="add" class="cute-btn">➕ Nueva receta</button>` : ""}
-            <div class="grid-4"></div>
-        `;
+    function initBlog() {
+        const c = document.getElementById("postsContainer");
+        c.innerHTML = "";
 
-        const grid = container.querySelector(".grid-4");
+        posts.forEach(p => {
+            c.innerHTML += `
+            <div class="card blog-post">
+                <h4>${p.username}</h4>
+                <p>${p.content}</p>
 
-        recipes.forEach(r => {
-            grid.innerHTML += `
-            <div class="card recipe-card">
-                <img src="${r.image}" class="recipe-img">
-                <h4>${r.name}</h4>
-                <p>${r.category}</p>
+                ${p.image ? `<img src="${p.image}" class="post-img">` : ""}
 
-                <button class="view" data-id="${r.id}">Ver más 👀</button>
-
-                ${isAdmin ? `<button class="del" data-id="${r.id}">🗑</button>` : ""}
-            </div>`;
-        });
-
-        if (isAdmin) {
-            document.getElementById("add").onclick = renderForm;
-        }
-
-        document.querySelectorAll(".view").forEach(btn => {
-            btn.onclick = () => renderDetail(btn.dataset.id);
-        });
-
-        document.querySelectorAll(".del").forEach(btn => {
-            btn.onclick = async () => {
-                await supabase.from("recipes").delete().eq("id", btn.dataset.id);
-                loadRecipes();
-            };
+                ${isAdmin ? `<button class="delete-post" data-id="${p.id}">Eliminar</button>` : ""}
+            </div>
+            `;
         });
     }
 
-    /* ================= FORM ================= */
-
-    function renderForm() {
-
-        const container = document.getElementById("recetario");
-
-        container.innerHTML = `
-        <button id="back" class="back-btn">⬅ Volver</button>
-
-        <div class="card form-card">
-            <h3>🍰 Nueva receta</h3>
-
-            <input id="name" placeholder="Nombre">
-            <input id="cat" placeholder="Categoría">
-
-            <textarea id="ing" placeholder="Ingredientes"></textarea>
-            <textarea id="prep" placeholder="Preparación"></textarea>
-
-            <input type="file" id="img">
-
-            <button id="save">Guardar</button>
-        </div>
-        `;
-
-        document.getElementById("back").onclick = initRecetario;
-
-        document.getElementById("save").onclick = async () => {
-
-            const file = document.getElementById("img").files[0];
-            if (!file) return alert("Selecciona imagen");
-
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-
-                await supabase.from("recipes").insert([{
-                    name: name.value,
-                    category: cat.value,
-                    ingredients: ing.value,
-                    preparation: prep.value,
-                    image: e.target.result
-                }]);
-
-                loadRecipes();
-            };
-
-            reader.readAsDataURL(file);
-        };
-    }
-
-    /* ================= DETALLE ================= */
+    /* ================= DETAIL ================= */
 
     function renderDetail(id) {
+        const r = recipes.find(x => x.id == id);
 
-        const recipe = recipes.find(r => r.id == id);
-        const container = document.getElementById("recetario");
-
-        container.innerHTML = `
-        <button id="back" class="back-btn">⬅ Volver</button>
-
-        <div class="card detail-card">
-            <img src="${recipe.image}" class="detail-img">
-            <h2>${recipe.name}</h2>
-
-            <h4>Ingredientes</h4>
-            <ul>
-                ${recipe.ingredients.split("\n").map(i => `<li>${i}</li>`).join("")}
-            </ul>
-
-            <h4>Preparación</h4>
-            <p>${recipe.preparation}</p>
-        </div>
+        pageContent.innerHTML = `
+            <button id="backBtn">⬅ Volver</button>
+            <div class="card">
+                <img src="${r.image}" class="detail-img">
+                <h2>${r.name}</h2>
+                <p>${r.ingredients}</p>
+                <p>${r.preparation}</p>
+            </div>
         `;
-
-        document.getElementById("back").onclick = initRecetario;
     }
-
-    /* ================= INIT ================= */
-
-    checkUser();
-    loadRecipes();
 
 });

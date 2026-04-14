@@ -1,20 +1,20 @@
 {
   "name": "JAMM - Repostería Creativa",
   "short_name": "JAMM",
-  "start_url": "/JAMM-test/index.html",
-  "scope": "/JAMM-test/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#E5D4ED",
   "theme_color": "#6D72C3",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/JAMM-test/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/JAMM-test/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

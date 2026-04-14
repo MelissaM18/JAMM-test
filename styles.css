@@ -69,11 +69,11 @@ main {
 
 .card {
     background: white;
-    padding: 1.5rem;
+    padding: 1.2rem;
     border-radius: 25px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    margin-bottom: 2rem;
     transition: 0.3s;
+    position: relative; /* 👈 necesario */
 }
 
 .card:hover {
@@ -88,6 +88,7 @@ main {
     gap: 15px;
 }
 
+/* RESPONSIVE */
 @media (max-width: 1024px) {
     .grid-4 {
         grid-template-columns: repeat(2, 1fr);
@@ -100,6 +101,29 @@ main {
     }
 }
 
+/* ================= RECETAS ================= */
+
+/* 🔥 IMPORTANTE: quitar flex */
+#recetario {
+    width: 100%;
+}
+
+/* estilo bonito de tarjetas */
+.recipe-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recipe-card h4 {
+    margin: 5px 0;
+}
+
+.recipe-card p {
+    font-size: 0.85rem;
+    color: #777;
+}
+
 /* ================= IMÁGENES ================= */
 
 .recipe-img {
@@ -107,15 +131,6 @@ main {
     height: 160px;
     object-fit: cover;
     border-radius: 15px;
-    margin-bottom: 10px;
-}
-
-.detail-img {
-    width: 100%;
-    max-width: 350px;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 20px;
 }
 
 /* ================= BOTONES ================= */
@@ -136,104 +151,30 @@ button:hover {
     transform: scale(1.05);
 }
 
-.back-btn {
-    margin-bottom: 20px;
+/* botón ver más */
+.view-btn {
+    margin-top: 8px;
 }
 
-.cute-btn {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+/* ================= BOTONES ELIMINAR ================= */
+
+.delete-post,
+.delete-recipe {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+
+    background: linear-gradient(135deg, #ff6b6b, #e03131);
+    color: white;
+
+    padding: 8px 12px;
+    font-size: 0.8rem;
 }
 
-.del {
-    background: #ff4d6d;
-}
-
-.del:hover {
-    background: #d90429;
-}
-
-/* ================= RECETARIO ================= */
-
-#recetario {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-#add {
-    align-self: flex-start;
-}
-
-.recipe-card h4 {
-    margin: 5px 0;
-}
-
-.recipe-card p {
-    font-size: 0.85rem;
-    color: #777;
-}
-
-/* ================= DETALLE ================= */
-
-.detail-card {
-    padding: 25px;
-}
-
-.detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    gap: 30px;
-    margin-top: 20px;
-}
-
-@media (max-width: 768px) {
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.ingredients-list {
-    background: #F8F6FB;
-    padding: 15px;
-    border-radius: 15px;
-}
-
-.ingredients-list li {
-    margin-bottom: 8px;
-    margin-left: 15px;
-}
-
-.prep-text {
-    line-height: 1.6;
-}
-
-/* ================= FORM ================= */
-
-.form-card h3 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-input, textarea {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 12px;
-    border-radius: 15px;
-    border: 2px solid transparent;
-    background: #F8F6FB;
-    font-size: 14px;
-    outline: none;
-    transition: 0.3s;
-}
-
-input:focus, textarea:focus {
-    border: 2px solid #6D72C3;
-    background: white;
-}
-
-textarea {
-    resize: none;
-    height: 100px;
+.delete-post:hover,
+.delete-recipe:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(255, 77, 77, 0.4);
 }
 
 /* ================= AUTH ================= */
@@ -245,69 +186,81 @@ textarea {
     min-height: 70vh;
 }
 
-.auth-card {
+.auth-box {
     width: 100%;
-    max-width: 350px;
-    padding: 25px;
+    max-width: 380px;
+    padding: 30px;
     border-radius: 25px;
-    background: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    text-align: center;
+
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    animation: fadeIn 0.4s ease;
 }
 
-.auth-card h2 {
-    margin-bottom: 15px;
+.auth-box h2 {
+    text-align: center;
     color: #5941A9;
 }
 
-.auth-card input {
-    margin-bottom: 10px;
+/* INPUTS */
+.auth-box input {
+    padding: 12px;
+    border-radius: 15px;
+    border: 2px solid transparent;
+    background: #f5f5f5;
+    outline: none;
+    transition: 0.3s;
 }
 
-.auth-switch {
-    margin-top: 10px;
+.auth-box input:focus {
+    border-color: #6D72C3;
+    background: white;
+}
+
+/* BOTÓN */
+.auth-box button {
+    margin-top: 15px;
+    align-self: center;
+    width: 100%;
+    max-width: 250px; /* 👈 evita que sea gigante */
+    text-align: center;
+    background: linear-gradient(135deg, #6D72C3, #5941A9);
+    box-shadow: 0 8px 20px rgba(109,114,195,0.4);
+}
+
+/* TEXTO CAMBIO */
+.switch-auth {
+    text-align: center;
     font-size: 0.9rem;
 }
 
-.auth-switch span {
-    color: #5941A9;
+.switch-auth span {
+    color: #6D72C3;
     font-weight: bold;
     cursor: pointer;
 }
 
-.auth-switch span:hover {
+.switch-auth span:hover {
     text-decoration: underline;
 }
 
-.auth-card {
-    animation: fadeIn 0.4s ease;
-}
-
+/* ANIMACIÓN */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* ================= HOME ================= */
-
-.home-hero {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.home-hero h1 {
-    color: #5941A9;
-    font-size: 2.2rem;
-}
-
-.home-hero p {
-    margin-bottom: 15px;
 }
 
 /* ================= USER ================= */
@@ -327,9 +280,6 @@ textarea {
     cursor: pointer;
     font-size: 1.2rem;
     color: #5941A9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #usernameDisplay {
@@ -337,7 +287,116 @@ textarea {
     color: white;
 }
 
-/* MENU */
+/* ================= BLOG ================= */
+
+.blog-creator {
+    max-width: 700px;
+    margin: 0 auto 30px auto; /* 👈 separación importante */
+}
+
+#postsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 15px;
+    border: none;
+    margin-bottom: 10px;
+    background: #F8F6FB;
+}
+
+.blog-post {
+    margin-bottom: 20px;
+}
+
+.blog-post h4 {
+    margin-bottom: 5px;
+    color: #5941A9;
+}
+
+.blog-post p {
+    margin-bottom: 10px;
+}
+
+.post-img {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin-top: 10px;
+}
+
+.blog-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+}
+
+.blog-left {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.blog-right {
+    max-width: 700px;
+}
+
+.blog-form textarea {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 15px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.blog-form input {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.blog-creator textarea {
+    width: 100%;
+    min-height: 80px;
+    border-radius: 15px;
+    border: none;
+    padding: 12px;
+    resize: none;
+    background: #f5f5f5;
+    margin-bottom: 10px;
+}
+
+/* INPUT FILE BONITO */
+.file-label {
+    display: inline-block;
+    background: #E5D4ED;
+    padding: 8px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.file-label input {
+    display: none;
+}
+
+.blog-container {
+    max-width: 700px;
+    margin: auto;
+}
+
+.blog-form {
+    margin-bottom: 30px;
+}
+
+/* ================= USER MENU ================= */
 
 .user-menu {
     position: absolute;
@@ -369,6 +428,29 @@ textarea {
 
 .hidden {
     display: none;
+}
+
+/* ================= HOME ================= */
+
+.home-hero {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.home-hero h1 {
+    color: #5941A9;
+    font-size: 2.2rem;
+}
+
+.home-hero button {
+    margin: 5px;
+}
+
+/* ================= INSTALL BUTTON ================= */
+
+#installBtn {
+    background: white;
+    color: #5941A9;
 }
 
 /* ================= FOOTER ================= */
