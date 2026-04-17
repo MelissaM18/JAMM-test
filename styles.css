@@ -98,26 +98,87 @@ main {
     transform: translateY(-5px);
 }
 
+.recipe-actions {
+    display: flex;
+    flex-wrap: wrap; /* 🔥 evita que se encimen */
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.recipe-actions button {
+    flex: 1; /* se distribuyen bonito */
+    min-width: 70px; /* evita que se aplasten */
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+
+
+/* ================= PAGINACION ================= */
+
+.recipe-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.blog-post {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.blog-left {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    align-self: flex-start; /* 🔥 evita estiramiento */
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.pagination button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ================= GRID ================= */
 
 .grid-4 {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
 }
 
-/* 📱 TABLET */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
     .grid-4 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* 📱 CELULAR */
-@media (max-width: 500px) {
-    .grid-4 {
-        grid-template-columns: 1fr;
-    }
+.blog-post h4 {
+    margin: 0;
+}
+
+.blog-post p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.blog-post button {
+    align-self: flex-start;
 }
 
 /* ================= RECETAS ================= */
@@ -130,7 +191,14 @@ main {
 
 .recipe-img {
     width: 100%;
-    height: 160px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.post-img {
+    width: 100%;
+    height: 200px;
     object-fit: cover;
     border-radius: 15px;
 }
@@ -174,7 +242,6 @@ button:hover {
 
 .delete-post,
 .delete-recipe {
-    position: absolute;
     bottom: 15px;
     right: 15px;
     background: linear-gradient(135deg, #ff6b6b, #e03131);
@@ -300,6 +367,7 @@ button:hover {
 .blog-layout {
     display: flex;
     gap: 20px;
+    align-items: flex-start; /* 🔥 MUY IMPORTANTE */
 }
 
 /* 📱 CELULAR */
@@ -307,11 +375,6 @@ button:hover {
     .blog-layout {
         flex-direction: column;
     }
-}
-
-.blog-left {
-    position: sticky;
-    top: 20px;
 }
 
 .blog-right {
@@ -363,19 +426,27 @@ textarea {
 #postsContainer {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* 👈 más separación entre posts */
+    gap: 20px;
 }
 
 /* CADA POST */
 .blog-post {
     display: flex;
-    gap: 15px;
-    align-items: flex-start;
+    flex-direction: column; /* 🔥 vertical, no horizontal */
+    gap: 10px;
 
     padding: 15px;
     border-radius: 20px;
 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05); /* 👈 profundidad */
+    background: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.blog-post p {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 /* ESPACIO EXTRA VISUAL */
@@ -384,14 +455,6 @@ textarea {
 }
 
 /* POST */
-
-.post-img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 15px;
-    flex-shrink: 0;
-}
 
 img {
     max-width: 100%;
@@ -405,17 +468,9 @@ img {
 /* ================= USER ================= */
 
 @media (max-width: 500px) {
-
-    h1 {
-        font-size: 24px;
-    }
-
-    h2 {
-        font-size: 20px;
-    }
-
-    button {
-        width: 100%;
+    .recipe-actions button {
+        width: auto; /* 🔥 evita que se estiren */
+        flex: 1 1 45%;
     }
 }
 

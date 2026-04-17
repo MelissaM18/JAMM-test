@@ -9,6 +9,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     /* ================= STATE ================= */
+    let recipePage = 1;
+    let postPage = 1;
+
+    const ITEMS_PER_PAGE = 8;
+
     let currentUser = null;
     let isAdmin = false;
 
@@ -51,6 +56,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         document.addEventListener("click", (e) => {
+
+            if (e.target.id === "prevPosts") {
+                postPage--;
+                goToPage("blog");
+            }
+
+            if (e.target.id === "nextPosts") {
+                postPage++;
+                goToPage("blog");
+            }
+
+            if (e.target.id === "prevRecipes") {
+                recipePage--;
+                goToPage("recetario");
+            }
+
+            if (e.target.id === "nextRecipes") {
+                recipePage++;
+                goToPage("recetario");
+            }
 
             if (e.target.id === "saveRecipe") saveRecipe();
 
@@ -603,9 +628,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (page === "recetario") {
             html = `
-            <h2>Recetario</h2>
-            ${isAdmin ? `<button id="addRecipeBtn">+ Añadir receta</button>` : ""}
-            <div id="recetario" class="grid-4"></div>`;
+                <h2>Recetario</h2>
+                ${isAdmin ? `<button id="addRecipeBtn">+ Añadir receta</button>` : ""}
+                
+                <div id="recetario" class="grid-4"></div>
+                <div id="recipePagination"></div>
+            `;
         }
 
         if (page === "blog") {
@@ -633,8 +661,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="blog-right">
                     <h2>Publicaciones</h2>
                     <div id="postsContainer"></div>
+                    <div id="postPagination"></div>
                 </div>
-
             </div>`;
         }
 
@@ -703,16 +731,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             <h4>${r.name}</h4>
             <p>${r.category || "Sin categoría"}</p>
 
-            <button class="view-btn" data-id="${r.id}">Ver más</button>
+            <div class="recipe-actions">
+                <button class="view-btn" data-id="${r.id}">Ver</button>
 
-            <button class="like-recipe" data-id="${r.id}">
-                ❤️ ${likes}
-            </button>
+                <button class="like-recipe" data-id="${r.id}">
+                    ❤️ ${likes}
+                </button>
 
-            ${isAdmin ? `
-                <button class="edit-recipe" data-id="${r.id}">✏️ Editar</button>
-                <button class="delete-recipe" data-id="${r.id}">🗑</button>
-            ` : ""}
+                ${isAdmin ? `
+                    <button class="edit-recipe" data-id="${r.id}">✏️</button>
+                    <button class="delete-recipe" data-id="${r.id}">🗑</button>
+                ` : ""}
+            </div>
 
         </div>`;
     }
@@ -753,18 +783,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     function initRecetario() {
         const c = document.getElementById("recetario");
         if (!c) return;
-        c.innerHTML = recipes.map(recipeCard).join("");
+
+        const start = (recipePage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+
+        const paginated = recipes.slice(start, end);
+
+        c.innerHTML = paginated.map(recipeCard).join("");
+
+        renderRecipePagination();
+    }
+
+    function renderRecipePagination() {
+        const totalPages = Math.ceil(recipes.length / ITEMS_PER_PAGE);
+        const container = document.getElementById("recipePagination");
+
+        container.innerHTML = `
+            <div class="pagination">
+                <button id="prevRecipes" ${recipePage === 1 ? "disabled" : ""}>⬅️</button>
+                <span>Página ${recipePage} de ${totalPages}</span>
+                <button id="nextRecipes" ${recipePage === totalPages ? "disabled" : ""}>➡️</button>
+            </div>
+        `;
     }
 
     function initBlog() {
         const c = document.getElementById("postsContainer");
         if (!c) return;
 
-        c.innerHTML = posts.map(p => `
+        const start = (postPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+
+        const paginated = posts.slice(start, end);
+
+        c.innerHTML = paginated.map(p => `
             <div class="card blog-post">
-
                 ${p.image ? `<img src="${p.image}" class="post-img">` : ""}
-
                 <div>
                     <h4>${p.username}</h4>
                     <p>${p.content}</p>
@@ -780,10 +834,26 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ${(p.user_id === currentUser?.id || isAdmin) ? `
                         <button class="delete-post" data-id="${p.id}">🗑</button>
                     ` : ""}
-
                 </div>
             </div>
         `).join("");
+
+        renderPostPagination();
+    }
+
+    function renderPostPagination() {
+
+        const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
+
+        const container = document.getElementById("postPagination");
+
+        container.innerHTML = `
+            <div class="pagination">
+                <button id="prevPosts" ${postPage === 1 ? "disabled" : ""}>⬅️</button>
+                <span>Página ${postPage} de ${totalPages}</span>
+                <button id="nextPosts" ${postPage === totalPages ? "disabled" : ""}>➡️</button>
+            </div>
+        `;
     }
 
     function renderDetail(id) {
