@@ -18,9 +18,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     let isAdmin = false;
 
     let recipes = [];
+    let recipeLikes = [];
+
     let posts = [];
     let postLikes = [];
-    let recipeLikes = [];
+
+    let favorites = [];
 
     let deferredPrompt = null;
 
@@ -40,6 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadRecipes();
         await loadPosts();
         await loadLikes();
+        await loadFavorites();
 
         goToPage("inicio");
 
@@ -56,6 +60,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         document.addEventListener("click", (e) => {
+
+            const fav = e.target.closest(".fav-recipe");
+                if (fav) toggleFavorite(fav.dataset.id);
 
             if (e.target.id === "prevPosts") {
                 postPage--;
@@ -218,6 +225,52 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("✅ Sesión cerrada");
     }
 
+    /* ================= FAVORITOS ================= */
+    async function loadFavorites() {
+        if (!currentUser) return;
+
+        const { data } = await supabase
+            .from("favorites")
+            .select("*")
+            .eq("user_id", currentUser.id);
+
+        favorites = data || [];
+    }
+
+    async function toggleFavorite(recipeId) {
+
+        if (!currentUser) return alert("Inicia sesión 💜");
+
+        const existing = favorites.find(f =>
+            f.recipe_id == recipeId &&
+            f.user_id == currentUser.id
+        );
+
+        if (existing) {
+            await supabase
+                .from("favorites")
+                .delete()
+                .eq("id", existing.id);
+        } else {
+            await supabase
+                .from("favorites")
+                .insert([{
+                    user_id: currentUser.id,
+                    recipe_id: recipeId
+                }]);
+        }
+
+        await loadFavorites();
+
+        const isDetailView = document.querySelector(".detail-layout");
+
+        if (isDetailView) {
+            renderDetail(recipeId);
+        } else {
+            goToPage(currentPage);
+        }
+    }
+
     /* ================= RECETAS ADMIN ================= */
 
     //AÑADIR RECETAS
@@ -339,6 +392,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const confirmDelete = confirm("¿Eliminar esta receta?");
     if (!confirmDelete) return;
+
+        console.log("🗑 Eliminando receta:", id);
 
     // 🔥 1. eliminar likes relacionados
     const { error: likeError } = await supabase
@@ -589,16 +644,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         if (existing) {
-            await supabase.from("recipe_likes").delete().eq("id", existing.id);
+            await supabase
+                .from("recipe_likes")
+                .delete()
+                .eq("id", existing.id); // ✅ FIX
         } else {
-            await supabase.from("recipe_likes").insert([{
-                recipe_id: recipeId,
-                user_id: currentUser.id
-            }]);
+            await supabase
+                .from("recipe_likes")
+                .insert([{
+                    recipe_id: recipeId,
+                    user_id: currentUser.id
+                }]);
         }
 
         await loadLikes();
-        goToPage("recetario");
+
+        const isDetailView = document.querySelector(".detail-layout");
+
+        if (isDetailView) {
+            renderDetail(recipeId);
+        } else {
+            goToPage(currentPage);
+        }
     }
 
     /* ================= NAV ================= */
@@ -615,6 +682,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderPage(page) {
 
         let html = "";
+
+        if (page === "favoritos") {
+            html = `
+                <h2>💜 Mis favoritos</h2>
+                <div id="favoritesContainer" class="grid-4"></div>
+            `;
+        }
 
         if (page === "inicio") {
             html = `
@@ -671,6 +745,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (page === "inicio") initHome();
         if (page === "recetario") initRecetario();
         if (page === "blog") initBlog();
+        if (page === "favoritos") initFavorites();
     }
 
     /* ================= UI ================= */
@@ -721,6 +796,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function recipeCard(r) {
 
+        const isFav = favorites.some(f => f.recipe_id == r.id);
+
         const likes = recipeLikes.filter(l => l.recipe_id == r.id).length;
 
         return `
@@ -739,8 +816,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </button>
 
                 ${isAdmin ? `
-                    <button class="edit-recipe" data-id="${r.id}">✏️</button>
-                    <button class="delete-recipe" data-id="${r.id}">🗑</button>
+                    <button class="edit-recipe" data-id="${r.id}">Editar</button>
+                    <button class="delete-recipe" data-id="${r.id}">Eliminar</button>
                 ` : ""}
             </div>
 
@@ -777,7 +854,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     function initHome() {
         const c = document.getElementById("homeGrid");
         if (!c) return;
-        c.innerHTML = recipes.slice(0, 4).map(recipeCard).join("");
+
+        c.innerHTML = `
+            <div class="home-header">
+                <h2 class="section-title">🍰 Recetas recientes</h2>
+            </div>
+
+            ${recipes.slice(0, 4).map(recipeCard).join("")}
+        `;
+    }
+
+    function initFavorites() {
+
+        const c = document.getElementById("favoritesContainer");
+        if (!c) return;
+
+        const favRecipes = recipes.filter(r =>
+            favorites.some(f => f.recipe_id == r.id)
+        );
+
+        c.innerHTML = favRecipes.map(recipeCard).join("");
     }
 
     function initRecetario() {
@@ -861,15 +957,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         const r = recipes.find(x => x.id == id);
         if (!r) return;
 
-        pageContent.innerHTML = `
-        <button id="backBtn">⬅ Volver</button>
+        const isFav = favorites.some(f => f.recipe_id == r.id);
 
+        pageContent.innerHTML = `
+            <div class="detail-top">
+                <button id="backBtn">⬅ Volver</button>
+                <button class="fav-recipe detail-fav" data-id="${r.id}">
+                    ${isFav ? "💜" : "🤍"}
+                </button>
+            </div>
         <div class="card detail-layout">
 
             <div>
                 <img src="${r.image}" class="detail-img">
                 <h4>Ingredientes</h4>
-                <p>${r.ingredients}</p>
+                <ul class="ingredients-list">
+                    ${r.ingredients
+                        .split("\n")
+                        .map(i => `<li>${i}</li>`)
+                        .join("")}
+                </ul>
             </div>
 
             <div>
@@ -877,9 +984,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <h4>Categoría</h4>
                 <p>${r.category || "Sin categoría"}</p>
                 <h4>Preparación</h4>
-                <p>${r.preparation}</p>
+                <div class="preparation-text">
+                    ${r.preparation
+                        .split("\n")
+                        .map(p => `<p>${p}</p>`)
+                        .join("")}
+                </div>
             </div>
-
         </div>`;
     }
 

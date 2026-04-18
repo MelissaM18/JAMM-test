@@ -181,6 +181,39 @@ main {
     align-self: flex-start;
 }
 
+.detail-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.detail-fav {
+    background: none;
+    font-size: 1.6rem;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.detail-fav:hover {
+    transform: scale(1.2);
+}
+
+#backBtn {
+    width: auto; /* 👈 evita que ocupe toda la fila en móvil */
+}
+
+.home-header {
+    grid-column: 1 / -1;
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 22px;
+    margin: 0;
+    font-weight: bold;
+}
+
 /* ================= RECETAS ================= */
 
 .recipe-card {
@@ -189,18 +222,29 @@ main {
     gap: 8px;
 }
 
-.recipe-img {
+.recipe-img,
+.post-img,
+.detail-img {
     width: 100%;
-    height: 180px;
-    object-fit: cover;
+    aspect-ratio: 1 / 1; /* 👈 fuerza formato cuadrado */
+    object-fit: cover;   /* 👈 recorta sin deformar */
     border-radius: 10px;
 }
 
+.recipe-img {
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
 .post-img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 15px;
+    max-width: 300px;
+    margin-bottom: 10px;
+    margin: 0 auto;
+}
+
+.detail-img {
+    max-width: 400px;
+    margin: 0 auto;
+    display: block;
 }
 
 /* 👇 BOTÓN VER MÁS ARREGLADO */
@@ -275,13 +319,6 @@ button:hover {
     gap: 25px;
 
     padding: 20px;
-    border-radius: 20px;
-}
-
-.detail-img {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
     border-radius: 20px;
 }
 
@@ -463,6 +500,20 @@ img {
 
 .blog-post div {
     flex: 1;
+}
+
+.ingredients-list {
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.ingredients-list li {
+    margin-bottom: 5px;
+}
+
+.preparation-text p {
+    margin-bottom: 10px;
+    line-height: 1.5;
 }
 
 /* ================= USER ================= */
